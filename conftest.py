@@ -1,25 +1,33 @@
 import pytest
+import os 
+import sys
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from fastapi.testclient import TestClient
-import sys
-import os
+from jose import jwt
+from datetime import datetime, timedelta, UTC
+from .services.config import SECRET_KEY, ALGORITHM
 
 # Ensure the current directory is in sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from main import app
-from services.database import Base, get_db
+#from models import Base  # Asegúrate de importar Base desde donde defines tus modelos
+from services.database import Base, get_db  # O el path correcto a tu función de dependencia
 
-# Configuración de base de datos SQLite en memoria
-SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"
-engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+# Usar SQLite en memoria para pruebas
+SQLALCHEMY_DATABASE_URL = "sqlite:///./static/bdd/testing.db"
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Crear tablas antes de ejecutar pruebas
-Base.metadata.create_all(bind=engine)
+# Crear las tablas antes de cada test
+@pytest.fixture(scope="session", autouse=True)
+def setup_database():
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
 
-# Override de la dependencia get_db para usar la base de datos de pruebas
+# Override de la dependencia de DB
 def override_get_db():
     db = TestingSessionLocal()
     try:
@@ -29,8 +37,20 @@ def override_get_db():
 
 app.dependency_overrides[get_db] = override_get_db
 
-# Fixture para el cliente de pruebas
-@pytest.fixture(scope="module")
+# Cliente de prueba
+@pytest.fixture()
 def test_client():
-    with TestClient(app) as client:
-        yield client
+    return TestClient(app)
+
+# Fixture for admsys token
+@pytest.fixture()
+def admsys_token():
+    expire = datetime.utcnow() + timedelta(minutes=30)
+    payload = {
+        "sub": "admin@example.com",
+        "role": "admsys",
+        "is_active": True,
+        "exp": expire
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return f"Bearer {token}"

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from models.user import UserRole
 
 class UserBase(BaseModel):
     username: str
@@ -9,6 +10,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    role: UserRole = UserRole.opera
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -19,6 +21,7 @@ class UserRead(UserBase):
     is_active: bool
     is_staff: bool
     is_superuser: bool
+    role: UserRole
 
     model_config = {
         "from_attributes": True
