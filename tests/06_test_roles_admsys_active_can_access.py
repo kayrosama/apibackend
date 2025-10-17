@@ -6,6 +6,7 @@ from main import app
 from fastapi.testclient import TestClient
 from jose import jwt
 from datetime import datetime, timedelta, UTC
+from conftest import TestingSessionLocal 
     
 client = TestClient(app)
 

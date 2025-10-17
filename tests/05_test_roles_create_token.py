@@ -1,12 +1,12 @@
 import pytest
-from fastapi.testclient import TestClient
 from jose import jwt
 from datetime import datetime, timedelta, UTC
-from main import app
-from services.config import SECRET_KEY, ALGORITHM
 
-client = TestClient(app)
+# Configuración de seguridad
+SECRET_KEY = "Kawabonga69"
+ALGORITHM = "HS256"
 
+# Función para crear tokens
 def create_token(email: str, role: str, is_active: bool = True):
     expire = datetime.now(UTC) + timedelta(minutes=30)
     payload = {
@@ -18,16 +18,20 @@ def create_token(email: str, role: str, is_active: bool = True):
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return f"Bearer {token}"
 
-TOKENS = {
-    "admsys_active": create_token("admin@example.com", "admsys", True),
-    "admsys_inactive": create_token("admin@example.com", "admsys", False),
-    "sysoper_active": create_token("sys@example.com", "sysoper", True),
-    "opera_active": create_token("op@example.com", "opera", True),
-    "no_token": None
-}
-
-for key, token in TOKENS.items():
-    if token:
-        print(f"{key}: {token[:30]}...")  # Muestra solo los primeros 30 caracteres
-    else:
-        print(f"{key}: None")
+# Pruebas automatizadas para validar tokens
+@pytest.mark.parametrize("email,role,is_active", [
+    ("admin@example.com", "admsys", True),
+    ("admin@example.com", "admsys", False),
+    ("sys@example.com", "sysoper", True),
+    ("op@example.com", "opera", True),
+])
+def test_token_structure_and_payload(email, role, is_active):
+    token = create_token(email, role, is_active)
+    assert token.startswith("Bearer ")
+    encoded = token.split(" ")[1]
+    decoded = jwt.decode(encoded, SECRET_KEY, algorithms=[ALGORITHM])
+    assert decoded["sub"] == email
+    assert decoded["role"] == role
+    assert decoded["is_active"] == is_active
+    assert "exp" in decoded
+    

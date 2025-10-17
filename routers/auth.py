@@ -9,10 +9,15 @@ from services.database import get_db
 router = APIRouter()
 logger = get_logger(__name__)
 
-@router.post("/register", response_model=UserRead, dependencies=[Depends(require_roles(UserRole.admsys))])
-def register(user: UserCreate, db: Session = Depends(get_db)):
+@router.post("/register", response_model=UserRead)
+def register(
+    user: UserCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles(UserRole.admsys))  # ← aquí se valida y se pasa el usuario
+):
     try:
         existing_user = db.query(User).filter(User.email == user.email).first()
+        logger.info(f"Existing User: {existing_user}")
         if existing_user:
             logger.info(f"Attempt to register existing email: {user.email}")
             raise HTTPException(status_code=400, detail="Email already registered")
@@ -39,7 +44,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error during registration: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
-
+    
 @router.post("/login")
 def login(credentials: UserLogin, db: Session = Depends(get_db)):
     try:
@@ -58,3 +63,4 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error during login: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
+

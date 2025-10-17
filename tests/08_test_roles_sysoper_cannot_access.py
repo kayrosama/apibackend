@@ -6,6 +6,7 @@ from main import app
 from services.database import get_db
 from models.user import User
 from utils.security import get_password_hash
+from conftest import TestingSessionLocal 
 
 client = TestClient(app)
 ENDPOINT = "/auth/register"
@@ -13,7 +14,7 @@ SECRET_KEY = "Kawabonga69"
 ALGORITHM = "HS256"
 
 def create_sysoper_user():
-    db = next(get_db())
+    db = TestingSessionLocal()
     user = User(
         username="sysoper",
         email="sys@example.com",
