@@ -1,4 +1,4 @@
-#!/home/ronin/devops/apibackend/.venv/bin/python3
+#!/Users/ronin/kasama/_src_/apibackend/.venv/bin/python3
 import sys
 from fastapi.cli import main
 if __name__ == '__main__':

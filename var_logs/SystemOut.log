@@ -1,0 +1,4 @@
+{"timestamp": "2025-10-17T03:51:56.048474+00:00", "level": "INFO", "module": "auth", "function": "register", "line": 33, "message": "User registered: inactiveadmin@example.com"}
+{"timestamp": "2025-10-17T03:59:33.013889+00:00", "level": "INFO", "module": "auth", "function": "register", "line": 33, "message": "User registered: inactiveadmin@example.com"}
+{"timestamp": "2025-10-17T04:08:08.722983+00:00", "level": "INFO", "module": "auth", "function": "register", "line": 33, "message": "User registered: inactiveadmin@example.com"}
+{"timestamp": "2025-10-17T05:33:24.573906+00:00", "level": "INFO", "module": "auth", "function": "register", "line": 33, "message": "User registered: inactiveadmin@example.com"}

@@ -34,12 +34,27 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
         
-def require_roles(*allowed_roles: UserRole):
-    def role_checker(user: User = Depends(get_current_user)):
-        if not user.is_active:
-            raise HTTPException(status_code=403, detail="Inactive user")
-        if user.role not in allowed_roles:
-            raise HTTPException(status_code=403, detail="Insufficient permissions")
-        return user
-    return role_checker
+#def require_roles(*allowed_roles: UserRole):
+#    def role_checker(user: User = Depends(get_current_user)):
+#        if not user.is_active:
+#            raise HTTPException(status_code=403, detail="Inactive user")
+#        if user.role not in allowed_roles:
+#            raise HTTPException(status_code=403, detail="Insufficient permissions")
+#        return user
+#    return role_checker
+    
+def require_roles(*allowed_roles):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            token_data = kwargs.get("token_data")
+            db: Session = kwargs.get("db")
+
+            user = db.query(User).filter(User.email == token_data.sub).first()
+            if not user or not user.is_active or user.role not in allowed_roles:
+                raise HTTPException(status_code=403, detail="Access forbidden")
+
+            return await func(*args, **kwargs)
+        return wrapper
+    return decorator
     
