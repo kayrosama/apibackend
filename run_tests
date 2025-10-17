@@ -1,0 +1,14 @@
+#!/bin/bash
+
+echo -e "Running tests in order..."
+pytest tests/01_test_auth_register_success.py
+pytest tests/02_test_auth_register_duplicate_user.py
+pytest tests/03_test_auth_login_success.py
+pytest tests/04_test_auth_login_failure.py
+pytest tests/05_test_roles_create_token.py
+pytest tests/06_test_roles_admsys_active_can_access.py
+pytest tests/07_test_roles_admsys_inactive_cannot_access.py
+pytest tests/08_test_roles_sysoper_cannot_access.py
+pytest tests/09_test_roles_opera_cannot_access.py
+pytest tests/10_test_roles_no_token_cannot_access.py
+
