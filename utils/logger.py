@@ -2,11 +2,13 @@ import logging
 import os
 import json
 from datetime import datetime, UTC
+from logging.handlers import RotatingFileHandler
 
 class JsonFormatter(logging.Formatter):
     def format(self, record):
         log_record = {
             "timestamp": datetime.now(UTC).isoformat(),
+            "logger": record.name,
             "level": record.levelname,
             "module": record.module,
             "function": record.funcName,
@@ -21,8 +23,13 @@ def get_logger(name: str) -> logging.Logger:
     os.makedirs("var_logs", exist_ok=True)
     logger = logging.getLogger(name)
     if not logger.handlers:
-        handler = logging.FileHandler("var_logs/SystemOut.log")
+        log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+        handler = RotatingFileHandler("var_logs/SystemOut.log", maxBytes=5_000_000, backupCount=5)
         handler.setFormatter(JsonFormatter())
-        logger.setLevel(logging.INFO)
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(JsonFormatter())
+        logger.setLevel(getattr(logging, log_level, logging.INFO))
         logger.addHandler(handler)
+        logger.addHandler(console_handler)
     return logger
+    
